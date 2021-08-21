@@ -7,6 +7,13 @@ const discovery = require('./IBMWatson/discover');
 const environmentId = 'system';
 const collectionId = 'news-en';
 
+const textToSpeech = require('./IBMWatson/textToSpeech');
+const synthesizeParams = {
+  text: 'Hello world',
+  accept: 'audio/wav',
+  voice: 'en-US_AllisonV3Voice',
+};
+
 var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), {
   flags: 'a',
 });
@@ -38,4 +45,25 @@ router.get('/discover', (req, res) => {
     });
 });
 
+router.get('/textToSpeech', (req, res) => {
+  textToSpeech.textToSpeech
+    .synthesize(synthesizeParams)
+    .then((response) => {
+      // The following line is necessary only for
+      // wav formats; otherwise, `response.result`
+      // can be directly piped to a file.
+      return textToSpeech.textToSpeech.repairWavHeaderStream(response.result);
+    })
+    .then((buffer) => {
+      //example for now
+      //TODO:
+      //check if the file exist? create file : send file
+      //fs.writeFileSync('hello_world.wav', buffer);
+    })
+    .catch((err) => {
+      console.log('error:', err);
+    });
+
+  res.sendFile(path.join(__dirname, 'hello_world.wav'));
+});
 module.exports = router;
