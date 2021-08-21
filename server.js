@@ -1,38 +1,38 @@
 const express = require('express');
-const MongoClient = require('mongodb').MongoClient;
+const mongoose = require('mongoose');
+const routes = require('./routers');
 
-const app = express()
-const PORT = 3000
-//mongodb uri
-//const uri = "mongodb+srv://ray:1998@cluster0.ho33k.mongodb.net/Sitboard?retryWrites=true&w=majority";
-const uri = "mongodb://ray:1998@cluster0-shard-00-00.ho33k.mongodb.net:27017,cluster0-shard-00-01.ho33k.mongodb.net:27017,cluster0-shard-00-02.ho33k.mongodb.net:27017/Sitboard?ssl=true&replicaSet=atlas-k8w5gq-shard-0&authSource=admin&retryWrites=true&w=majority";
+require('dotenv').config();
 
-const client = new MongoClient(uri, {
-    useUnifiedTopology: true,
-    useNewUrlParser: true
-  })
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-//connect to the database
-let journalsCollection
-const openConnection = () => {
-  client.connect(err => {
-    journalsCollection = client.db("Sitboard").collection("journals");
-    if (!err) {
-      console.log('connected to the database');
-    }
+// parse application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
 
-  })
-}
-app.use(express.static('public'))
+// parse application/json
+app.use(express.json());
 
+const uri = process.env.MONGODB_URI;
 
-app.get('', function(req, res){
-    
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-})
+let db = mongoose.connection;
 
-openConnection()
+//connect to database
+db.on('error', console.error.bind(console, 'MongoDB connection error'));
+db.once('open', function () {
+  // we're connected!
+  console.log('database connected');
+});
 
-app.listen(PORT,()=>{
-    console.log('server started on port 3000')
-})
+app.get('', function (req, res) {
+  res.send('hello');
+});
+
+//get routes
+app.use(routes);
+
+app.listen(PORT, () => {
+  console.log(`Server start at PORT ${PORT}`);
+});

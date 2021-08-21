@@ -1,2 +1,1 @@
-# Template
-template for sit725 practice 
+# IBM AI Service
